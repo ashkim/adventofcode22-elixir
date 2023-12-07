@@ -1,0 +1,124 @@
+# Day3
+
+## Section
+
+```elixir
+defmodule Day3 do
+  def solve_part_1(input_string) do
+    input_string
+    |> String.split("\n")
+    |> Enum.filter(fn line ->
+      line |> String.trim() |> String.length() > 0
+    end)
+    |> Enum.map(fn line ->
+      line
+      |> Day3.parse_rucksack()
+      |> Day3.find_common_item()
+      |> Day3.item_to_priority()
+    end)
+    |> Enum.sum()
+  end
+
+  def solve_part_2(input_string) do
+    input_string
+    |> String.split("\n")
+    |> Enum.filter(fn line ->
+      line |> String.trim() |> String.length() > 0
+    end)
+    |> Enum.chunk_every(3)
+    |> Enum.map(fn group ->
+      group
+      |> Day3.find_common_item()
+      |> Day3.item_to_priority()
+    end)
+    |> Enum.sum()
+  end
+
+  def parse_rucksack(s) do
+    count = String.length(s)
+    middle = div(count, 2)
+    [String.slice(s, 0, middle), String.slice(s, middle..-1)]
+  end
+
+  # first version - accepts 2 "compartments" aka strings
+  # def find_common_item({comp_a, comp_b}) do
+  #   s_a = MapSet.new(String.graphemes(comp_a))
+  #   s_b = MapSet.new(String.graphemes(comp_b))
+  #   MapSet.intersection(s_a, s_b)
+  #   |> Enum.at(0)  
+  # end
+
+  # second version modified to accept an arbritrary iterable of strings
+  def find_common_item(compartments) do
+    compartments
+    |> Enum.map(&String.graphemes(&1))
+    |> Enum.map(&MapSet.new(&1))
+    |> Enum.reduce(fn s, acc -> MapSet.intersection(acc, s) end)
+    |> Enum.at(0)
+  end
+
+  def item_to_priority(s) do
+    case s do
+      <<char::utf8>> when char in ?a..?z ->
+        char - ?a + 1
+
+      <<char::utf8>> when char in ?A..?Z ->
+        char - ?A + 27
+
+      _ ->
+        {:error, "Input '#{s}' must be a single letter string (a-z, A-Z)"}
+    end
+  end
+end
+
+ExUnit.start(auto_run: false)
+
+defmodule Day3Test do
+  use ExUnit.Case, async: false
+
+  @part_1_example_input "vJrwpWtwJgWrhcsFMMfFFhFp
+jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
+PmmdzqPrVvPwwTWBwg
+wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
+ttgJtRGJQctTZtZT
+CrZsJsPPZsGzwwsLwLmpwMDw
+"
+
+  test "solve part 1 example" do
+    assert 157 == Day3.solve_part_1(@part_1_example_input)
+  end
+
+  test "solve part 2 example" do
+    assert 70 == Day3.solve_part_2(@part_1_example_input)
+  end
+
+  test "parse_rucksack" do
+    assert ["vJrwpWtwJgWr", "hcsFMMfFFhFp"] == Day3.parse_rucksack("vJrwpWtwJgWrhcsFMMfFFhFp")
+  end
+
+  test "find_common_item" do
+    assert "a" == Day3.find_common_item(["abc", "adf"])
+    assert "a" == Day3.find_common_item(["abc", "adf", "agh"])
+    # no common item
+    assert nil == Day3.find_common_item(["abc", "def"])
+  end
+
+  test "item_to_priority" do
+    assert 1 == Day3.item_to_priority("a")
+    assert 26 == Day3.item_to_priority("z")
+    assert 27 == Day3.item_to_priority("A")
+    assert 52 == Day3.item_to_priority("Z")
+
+    assert {:error, "Input 'abcd' must be a single letter string (a-z, A-Z)"} ==
+             Day3.item_to_priority("abcd")
+  end
+end
+
+ExUnit.run()
+```
+
+```elixir
+contents = File.read!(~c"day03input")
+
+Day3.solve_part_2(contents)
+```

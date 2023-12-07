@@ -1,0 +1,130 @@
+# Day 2
+
+## Part 1
+
+```elixir
+contents = File.read!(~c"day02input")
+
+lines = String.split(contents, "\n", trim: false)
+```
+
+```elixir
+defmodule Day2 do
+  def decode_opponent_input(s) do
+    case s do
+      "A" -> :rock
+      "B" -> :paper
+      "C" -> :scissors
+    end
+  end
+
+  def decode_my_input(s) do
+    case s do
+      "X" -> :rock
+      "Y" -> :paper
+      "Z" -> :scissors
+    end
+  end
+
+  def decode_result_input(s) do
+    case s do
+      "X" -> :lose
+      "Y" -> :draw
+      "Z" -> :win
+    end
+  end
+
+  def result(opponent_choice, my_choice) do
+    case {opponent_choice, my_choice} do
+      # equal choices
+      {move, move} -> :draw
+      {:rock, :scissors} -> :lose
+      {:paper, :rock} -> :lose
+      {:scissors, :paper} -> :lose
+      _ -> :win
+    end
+  end
+
+  def score(my_choice, result) do
+    score_my_choice(my_choice) + score_result(result)
+  end
+
+  def score_my_choice(choice) do
+    case choice do
+      :rock -> 1
+      :paper -> 2
+      :scissors -> 3
+    end
+  end
+
+  def score_result(result) do
+    case result do
+      :win -> 6
+      :draw -> 3
+      :lose -> 0
+    end
+  end
+
+  def derive_my_choice(opp_choice, result) do
+    case {opp_choice, result} do
+      {_, :draw} -> opp_choice
+      {:rock, :win} -> :paper
+      {:rock, :lose} -> :scissors
+      {:paper, :win} -> :scissors
+      {:paper, :lose} -> :rock
+      {:scissors, :win} -> :rock
+      {:scissors, :lose} -> :paper
+    end
+  end
+end
+
+inputs =
+  lines
+  |> Enum.map(fn line ->
+    String.split(line, " ", parts: 2)
+  end)
+  |> Enum.filter(fn pair ->
+    Enum.count(pair) == 2
+  end)
+
+choices =
+  inputs
+  |> Enum.map(fn [a, b] ->
+    {Day2.decode_opponent_input(a), Day2.decode_my_input(b)}
+  end)
+
+scores =
+  choices
+  |> Enum.map(fn {a, b} ->
+    {b, Day2.result(a, b)}
+  end)
+  |> Enum.map(fn {my_choice, result} ->
+    Day2.score(my_choice, result)
+  end)
+
+total_score = Enum.sum(scores)
+```
+
+## Part 2
+
+```elixir
+opp_choice_and_results =
+  inputs
+  |> Enum.map(fn [a, b] ->
+    {Day2.decode_opponent_input(a), Day2.decode_result_input(b)}
+  end)
+
+my_choices_and_results =
+  opp_choice_and_results
+  |> Enum.map(fn {opp_choice, result} ->
+    {Day2.derive_my_choice(opp_choice, result), result}
+  end)
+
+scores =
+  my_choices_and_results
+  |> Enum.map(fn {my_choice, result} ->
+    Day2.score(my_choice, result)
+  end)
+
+Enum.sum(scores)
+```
