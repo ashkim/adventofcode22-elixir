@@ -1,0 +1,43 @@
+# aoc22 - day1
+
+## Day 1 - part 1
+
+```elixir
+contents = File.read!(~c"day01input")
+
+lines = String.split(contents, "\n", trim: false)
+```
+
+```elixir
+defmodule Day1 do
+  def emit_groups(array) do
+    array
+    |> Enum.reduce({[], []}, fn
+      "", {group, acc} ->
+        {[], [group | acc]}
+
+      element, {group, acc} ->
+        {[String.to_integer(element) | group], acc}
+    end)
+    |> (fn {last_group, acc} -> [last_group | acc] end).()
+  end
+end
+
+s =
+  Day1.emit_groups(lines)
+  |> Enum.map(&Enum.sum/1)
+  |> Enum.max() ||
+    0
+```
+
+## Part 2
+
+```elixir
+s =
+  Day1.emit_groups(lines)
+  |> Enum.map(&Enum.sum/1)
+  |> Enum.sort()
+  |> Enum.reverse()
+  |> Enum.take(3)
+  |> Enum.sum()
+```
